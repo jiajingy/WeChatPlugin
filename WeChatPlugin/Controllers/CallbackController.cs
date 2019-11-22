@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Services.MyLogger;
 using Services.WeChatBackend;
 
@@ -16,8 +17,9 @@ namespace WeChatPlugin.Controllers
     public class CallbackController : ControllerBase
     {
         private IMyLogger _logger;
+        private IMemoryCache _cache;
 
-        public CallbackController(IMyLogger logger)
+        public CallbackController(IMyLogger logger, IMemoryCache cache)
         {
             _logger = logger;
         }
@@ -26,6 +28,12 @@ namespace WeChatPlugin.Controllers
         [Route("Test")]
         public IActionResult Test([FromQuery]string signature, [FromQuery]string timestamp, [FromQuery]string nonce, [FromQuery]string echostr)
         {
+            MemoryCacheEntryOptions memoryCacheEntryOptions = new MemoryCacheEntryOptions();
+            memoryCacheEntryOptions.AbsoluteExpiration=DateTime.Now.AddMinutes(60);
+            memoryCacheEntryOptions.Priority = CacheItemPriority.Normal;
+
+
+            _cache.Set<string>("key", "value", memoryCacheEntryOptions);
             _logger.Info(echostr, signature, timestamp, nonce);
             return Ok("good");
         }
@@ -124,6 +132,6 @@ namespace WeChatPlugin.Controllers
 
 
 
-
+        
     }
 }

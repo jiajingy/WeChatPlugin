@@ -11,6 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Services.MyLogger;
+using Services.WebServices;
+using Services.WebServices.WeChat;
 
 namespace WeChatPlugin
 {
@@ -27,11 +29,13 @@ namespace WeChatPlugin
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers().AddXmlSerializerFormatters();
+            services.AddMemoryCache();
             
 
             // DI
             services.AddSingleton<IMyLogger>(x => new FileLogger("f"));
-
+            services.AddSingleton<IWebService, WebService>();
+            services.AddSingleton<IWeChatAPI, WeChatAPI>();
 
 
             
