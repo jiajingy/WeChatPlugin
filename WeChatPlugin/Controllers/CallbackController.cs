@@ -7,8 +7,10 @@ using System.Xml.Serialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using Services.MyLogger;
 using Services.WeChatBackend;
+using WeChatPlugin.Settings;
 
 namespace WeChatPlugin.Controllers
 {
@@ -18,10 +20,13 @@ namespace WeChatPlugin.Controllers
     {
         private IMyLogger _logger;
         private IMemoryCache _cache;
+        private IOptions<WeChatSettings> _weChatSettings;
 
-        public CallbackController(IMyLogger logger, IMemoryCache cache)
+        public CallbackController(IMyLogger logger, IMemoryCache cache,IOptions<WeChatSettings> weChatSettings)
         {
             _logger = logger;
+            _cache = cache;
+            _weChatSettings = weChatSettings;
         }
 
         [HttpGet]
@@ -55,7 +60,7 @@ namespace WeChatPlugin.Controllers
             {
                 _logger.Info(echostr,signature,timestamp,nonce);
 
-                CheckSignature checkSignature = new CheckSignature("jiajingyTest");
+                CheckSignature checkSignature = new CheckSignature(_weChatSettings.Value.token);
 
                 if (checkSignature.IsValidSignature(timestamp, nonce, signature))
                     return Ok(echostr);
@@ -87,7 +92,7 @@ namespace WeChatPlugin.Controllers
             try
             {
 
-                CheckSignature checkSignature = new CheckSignature("jiajingyTest");
+                CheckSignature checkSignature = new CheckSignature(_weChatSettings.Value.token);
 
                 if (checkSignature.IsValidSignature(timestamp, nonce, signature))
                 {

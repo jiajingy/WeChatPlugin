@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Services.MyLogger;
 using Services.WebServices;
 using Services.WebServices.WeChat;
+using WeChatPlugin.Settings;
 
 namespace WeChatPlugin
 {
@@ -38,7 +39,8 @@ namespace WeChatPlugin
             services.AddSingleton<IWeChatAPI, WeChatAPI>();
 
 
-            
+            // Settings
+            services.Configure<WeChatSettings>(Configuration.GetSection("WeChatOfficialAccount"));
             
         }
 
