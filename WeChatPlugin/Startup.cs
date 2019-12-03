@@ -6,11 +6,13 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Services.MyLogger;
+using Services.MyMemoryCache;
 using Services.WebServices;
 using Services.WebServices.WeChat;
 using WeChatPlugin.Settings;
@@ -31,14 +33,19 @@ namespace WeChatPlugin
         {
             services.AddControllers().AddXmlSerializerFormatters();
             services.AddMemoryCache();
-            
+
 
             // DI
+            services.AddSingleton<ICacheControl, CacheControl>();
+            services.AddSingleton<IMyMemoryCache, MyMemoryCache>();
+
             services.AddSingleton<IMyLogger>(x => new FileLogger("f"));
-            services.AddSingleton<IWebService, WebService>();
-            services.AddSingleton<IWeChatAPI, WeChatAPI>();
+            services.AddSingleton<IWeChatAPI>(x => new WeChatAPI(
+                Configuration.GetSection("WeChatOfficialAccount:appid").Value, 
+                Configuration.GetSection("WeChatOfficialAccount:appsecret").Value)
+            );
 
-
+            
             // Settings
             services.Configure<WeChatSettings>(Configuration.GetSection("WeChatOfficialAccount"));
             

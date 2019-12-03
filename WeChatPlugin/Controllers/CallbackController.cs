@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Services.MyLogger;
+using Services.MyMemoryCache;
 using Services.WeChatBackend;
 using WeChatPlugin.Settings;
 
@@ -19,10 +20,10 @@ namespace WeChatPlugin.Controllers
     public class CallbackController : ControllerBase
     {
         private IMyLogger _logger;
-        private IMemoryCache _cache;
+        private IMyMemoryCache _cache;
         private IOptions<WeChatSettings> _weChatSettings;
 
-        public CallbackController(IMyLogger logger, IMemoryCache cache,IOptions<WeChatSettings> weChatSettings)
+        public CallbackController(IMyLogger logger, IMyMemoryCache cache,IOptions<WeChatSettings> weChatSettings)
         {
             _logger = logger;
             _cache = cache;
@@ -34,11 +35,13 @@ namespace WeChatPlugin.Controllers
         public IActionResult Test([FromQuery]string signature, [FromQuery]string timestamp, [FromQuery]string nonce, [FromQuery]string echostr)
         {
             MemoryCacheEntryOptions memoryCacheEntryOptions = new MemoryCacheEntryOptions();
-            memoryCacheEntryOptions.AbsoluteExpiration=DateTime.Now.AddMinutes(60);
+            memoryCacheEntryOptions.AbsoluteExpiration=DateTime.Now.AddSeconds(60);
             memoryCacheEntryOptions.Priority = CacheItemPriority.Normal;
 
-
-            _cache.Set<string>("key", "value", memoryCacheEntryOptions);
+            _cache.Cache.Set<string>("jiajingy", "test1", memoryCacheEntryOptions);
+            
+            //if(_cache.Cache.TryGetValue("jiajingy", out string cacheValue)
+            
             _logger.Info(echostr, signature, timestamp, nonce);
             return Ok("good");
         }
