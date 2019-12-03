@@ -5,7 +5,7 @@ using System.Xml.Serialization;
 
 namespace Services.WeChatBackend
 {
-    [XmlRoot(Namespace = "XinweiYu", ElementName = "xml", DataType = "string", IsNullable = true)]
+    [XmlRoot(Namespace = "", ElementName = "xml", DataType = "string", IsNullable = true)]
     public class MessageXml
     {
         /// <summary>

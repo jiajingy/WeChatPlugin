@@ -8,6 +8,6 @@ namespace Services.MyMemoryCache
 {
     public interface IMyMemoryCache
     {
-        public IMemoryCache Cache { get; set; }
+        IMemoryCache Cache { get; set; }
     }
 }

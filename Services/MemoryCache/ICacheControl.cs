@@ -8,10 +8,16 @@ namespace Services.MyMemoryCache
 {
     public interface ICacheControl
     {
-        public bool IsCacheExist(string key);
+        bool IsCacheExist(string key);
 
-        public object GetValueBykey(string key);
+        object GetValueBykey(string key);
 
-        public void ResetExpirationTime(string key, int seconds);
+        void ResetExpirationTime(string key, int seconds);
+
+        void SetCache(string key, object value, int seconds);
+
+        void SetCache(string key, string value, int seconds);
+
+        void RemoveCache(string key);
     }
 }

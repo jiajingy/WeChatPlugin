@@ -10,6 +10,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Services.MyLogger;
 using Services.MyMemoryCache;
+using Services.WebServices.WeChat;
 using Services.WeChatBackend;
 using WeChatPlugin.Settings;
 
@@ -22,12 +23,14 @@ namespace WeChatPlugin.Controllers
         private IMyLogger _logger;
         private IMyMemoryCache _cache;
         private IOptions<WeChatSettings> _weChatSettings;
+        private IWeChatAPI _weChatAPI;
 
-        public CallbackController(IMyLogger logger, IMyMemoryCache cache,IOptions<WeChatSettings> weChatSettings)
+        public CallbackController(IMyLogger logger, IMyMemoryCache cache,IOptions<WeChatSettings> weChatSettings,IWeChatAPI weChatAPI)
         {
             _logger = logger;
             _cache = cache;
             _weChatSettings = weChatSettings;
+            _weChatAPI = weChatAPI;
         }
 
         [HttpGet]

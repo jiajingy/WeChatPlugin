@@ -22,12 +22,13 @@ namespace Services.WebServices.WeChat
             BASE_URL = "https://api.weixin.qq.com/cgi-bin/";
         }
 
-        public async Task<string> GetAccessToken()
+        public async Task<string> GetAccessTokenAsync()
         {
-            string url = $"{BASE_URL}grant_type=client_credential&appid={_appid}&secret={_appsecret}";
+            string url = $"{BASE_URL}token?grant_type=client_credential&appid={_appid}&secret={_appsecret}";
             return await GetAsync(url);
         }
 
+       
 
 
     }

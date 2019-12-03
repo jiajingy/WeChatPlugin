@@ -7,6 +7,6 @@ namespace Services.WebServices.WeChat
 {
     public interface IWeChatAPI
     {
-        Task<string> GetAccessToken();
+        Task<string> GetAccessTokenAsync();
     }
 }

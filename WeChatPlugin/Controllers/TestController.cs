@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.MyLogger;
+using Services.MyMemoryCache;
+using Services.WebServices.WeChat;
 
 namespace WeChatPlugin.Controllers
 {
@@ -13,10 +15,14 @@ namespace WeChatPlugin.Controllers
     public class TestController : ControllerBase
     {
         private IMyLogger _logger;
+        private IWeChatAPI _weChatAPI;
+        private ICacheControl _cacheControl;
 
-        public TestController(IMyLogger logger)
+        public TestController(IMyLogger logger,IWeChatAPI weChatAPI, ICacheControl cacheControl)
         {
             _logger = logger;
+            _weChatAPI = weChatAPI;
+            _cacheControl = cacheControl;
         }
 
 
@@ -24,7 +30,26 @@ namespace WeChatPlugin.Controllers
         [Route("HttpGetTest")]
         public IActionResult HttpGetTest()
         {
-            _logger.Info("testing this");
+
+            //Task<string> taskGetToken = _weChatAPI.GetAccessTokenAsync();
+            //taskGetToken.Wait();
+            //_logger.Debug(taskGetToken.Result);
+
+            _cacheControl.SetCache("access_token", "xinwei", 120);
+            
+            
+
+            string accessTOken = _cacheControl.GetValueBykey("access_token").ToString();
+
+            _logger.Debug(accessTOken);
+
+            _cacheControl.RemoveCache("access_token");
+            bool cacheExist = _cacheControl.IsCacheExist("access_token");
+
+            _logger.Debug(cacheExist.ToString());
+
+
+
             return Ok();
         }
     }
