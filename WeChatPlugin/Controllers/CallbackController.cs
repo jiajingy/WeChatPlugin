@@ -8,11 +8,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Services.MyLogger;
 using Services.MyMemoryCache;
 using Services.WebServices.WeChat;
+using Services.WebServices.WeChat.Models;
 using Services.WeChatBackend;
 using WeChatPlugin.Settings;
+using Services.Misc;
 
 namespace WeChatPlugin.Controllers
 {
@@ -21,14 +24,20 @@ namespace WeChatPlugin.Controllers
     public class CallbackController : ControllerBase
     {
         private IMyLogger _logger;
-        private IMyMemoryCache _cache;
+        private ICacheControl _cacheControl;
         private IOptions<WeChatSettings> _weChatSettings;
         private IWeChatAPI _weChatAPI;
 
-        public CallbackController(IMyLogger logger, IMyMemoryCache cache,IOptions<WeChatSettings> weChatSettings,IWeChatAPI weChatAPI)
+
+
+
+
+        private string _accessToken;
+
+        public CallbackController(IMyLogger logger, ICacheControl cacheControl, IOptions<WeChatSettings> weChatSettings,IWeChatAPI weChatAPI)
         {
             _logger = logger;
-            _cache = cache;
+            _cacheControl = cacheControl;
             _weChatSettings = weChatSettings;
             _weChatAPI = weChatAPI;
         }
@@ -37,13 +46,7 @@ namespace WeChatPlugin.Controllers
         [Route("Test")]
         public IActionResult Test([FromQuery]string signature, [FromQuery]string timestamp, [FromQuery]string nonce, [FromQuery]string echostr)
         {
-            MemoryCacheEntryOptions memoryCacheEntryOptions = new MemoryCacheEntryOptions();
-            memoryCacheEntryOptions.AbsoluteExpiration=DateTime.Now.AddSeconds(60);
-            memoryCacheEntryOptions.Priority = CacheItemPriority.Normal;
-
-            _cache.Cache.Set<string>("jiajingy", "test1", memoryCacheEntryOptions);
             
-            //if(_cache.Cache.TryGetValue("jiajingy", out string cacheValue)
             
             _logger.Info(echostr, signature, timestamp, nonce);
             return Ok("good");
@@ -100,26 +103,54 @@ namespace WeChatPlugin.Controllers
 
                 CheckSignature checkSignature = new CheckSignature(_weChatSettings.Value.token);
 
+                // Check if signature matches
                 if (checkSignature.IsValidSignature(timestamp, nonce, signature))
                 {
                     // Authorized call
                     using (var reader = new StreamReader(Request.Body))
                     {
+                        // Read message
                         var body = await reader.ReadToEndAsync();
                         XmlSerializer xmlSerializer = new XmlSerializer(typeof(MessageXml));
                         StringReader stringReader = new StringReader(body);
                         MessageXml messageXml = (MessageXml)xmlSerializer.Deserialize(stringReader);
 
+                        
+
                         if (messageXml.MsgType == "text")
                         {
+                            _logger.Info($"User ({messageXml.FromUserName}) post text message {messageXml.Content}");
+                            // Check if access token is cached already, if not, using wechat API to get a new one, then save it in cache
+                            if (!_cacheControl.IsCacheExist("access_token"))
+                            {
+                                Task<string> taskGetAccessToken = _weChatAPI.GetAccessTokenAsync();
+                                taskGetAccessToken.Wait();
+                                _accessToken = JSONFormatting<AccessToken>.JsonToClass(taskGetAccessToken.Result).access_token;
+                                _cacheControl.SetCache("access_token", _accessToken, 60 * 60);
+                            }
+                            // access token is cached, retrieve it
+                            else
+                            {
+                                _accessToken = _cacheControl.GetValueBykey("access_token").ToString();
+                            }
 
+
+                            Task<string> taskGetUserInfo = _weChatAPI.GetUserInfo(_accessToken, messageXml.FromUserName);
+                            taskGetUserInfo.Wait();
+                            WeChatUserInfo weChatUserInfo = JSONFormatting<WeChatUserInfo>.JsonToClass(taskGetUserInfo.Result);
+
+                            _logger.Debug("hehehhee", taskGetUserInfo.Result,_accessToken);
+
+
+                            // fetch user information
+                            
                         }
                         else
                         {
 
                         }
 
-                        _logger.Info("Post3", messageXml.Content, messageXml.FromUserName, messageXml.ToUserName);
+                        
                     }
                     return Ok(echostr);
                 }

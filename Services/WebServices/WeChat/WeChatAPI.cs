@@ -14,20 +14,26 @@ namespace Services.WebServices.WeChat
         {
             _appid = appid;
             _appsecret = appsecret;
-            BASE_URL = "https://api.weixin.qq.com/cgi-bin/";
+            BASE_URL = "https://api.weixin.qq.com";
         }
 
         public WeChatAPI()
         {
-            BASE_URL = "https://api.weixin.qq.com/cgi-bin/";
+            BASE_URL = "https://api.weixin.qq.com";
         }
 
         public async Task<string> GetAccessTokenAsync()
         {
-            string url = $"{BASE_URL}token?grant_type=client_credential&appid={_appid}&secret={_appsecret}";
+            string url = $"{BASE_URL}/cgi-bin/token?grant_type=client_credential&appid={_appid}&secret={_appsecret}";
             return await GetAsync(url);
         }
 
+        public async Task<string> GetUserInfo(string access_token, string openid)
+        {
+            string url = $"{BASE_URL}/sns/userinfo?access_token={access_token}&openid={openid}&lang=en";
+            return await GetAsync(url);
+
+        }
        
 
 
