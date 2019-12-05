@@ -149,7 +149,7 @@ namespace WeChatPlugin.Controllers
                         else if (messageXml.MsgType == "voice")
                         {
                             VoiceMessageXml voiceMessageXml = Formatting<VoiceMessageXml>.XmlToClass(body);
-                            _logger.Info($"User ({voiceMessageXml.FromUserName}) post voice message {voiceMessageXml.Recognition}");
+                            _logger.Info($"User ({voiceMessageXml.FromUserName}) post voice message {voiceMessageXml.Recognition}, {voiceMessageXml.MediaId}, {voiceMessageXml.Format} {body}");
                         }
 
                         

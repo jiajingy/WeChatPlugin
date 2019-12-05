@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 namespace Services.WeChatBackend.Message
 {
     [XmlRoot(Namespace = "", ElementName = "xml", DataType = "string", IsNullable = true)]
-    public abstract class MessageXml
+    public class MessageXml
     {
         /// <summary>
         /// public account
