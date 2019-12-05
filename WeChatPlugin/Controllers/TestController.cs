@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Services.Misc;
 using Services.MyLogger;
 using Services.MyMemoryCache;
 using Services.WebServices.WeChat;
+using Services.WebServices.WeChat.Models;
 
 namespace WeChatPlugin.Controllers
 {
@@ -35,19 +37,24 @@ namespace WeChatPlugin.Controllers
             //taskGetToken.Wait();
             //_logger.Debug(taskGetToken.Result);
 
-            _cacheControl.SetCache("access_token", "xinwei", 120);
-            
-            
 
-            string accessTOken = _cacheControl.GetValueBykey("access_token").ToString();
 
-            _logger.Debug(accessTOken);
+            //Task<string> taskGetAccessToken = _weChatAPI.GetAccessTokenAsync();
 
-            _cacheControl.RemoveCache("access_token");
-            bool cacheExist = _cacheControl.IsCacheExist("access_token");
+            //taskGetAccessToken.Wait();
 
-            _logger.Debug(cacheExist.ToString());
+            //string _accessToken = JSONFormatting<AccessToken>.JsonToClass(taskGetAccessToken.Result).access_token;
 
+            string _accessToken = "28_K2O8C0JWZGM2XguSgS8x-frs3nQyiQywTn85uuqubhMhnBGNCmVD96p0YoqtQ7GF_v9_sT9-20ORuN1FDlI4c3ecSZi1Whx3RQbQbocvaTWHq4u_VZEmOopvcBWBh6GjTHuNvmJj2WY91VdZGVBjABANCI";
+
+            _logger.Debug(_accessToken);
+
+            Task<string> getUserInfo = _weChatAPI.GetSubscriberInfo(_accessToken, "oQn7Pv0i5Y65EL-mdgT11KbhLK6g");
+            getUserInfo.Wait();
+
+            var userInfo = Formatting<WeChatUserInfo>.JsonToClass(getUserInfo.Result);
+
+            _logger.Debug(userInfo.nickname);
 
 
             return Ok();

@@ -16,6 +16,7 @@ using Services.WebServices.WeChat.Models;
 using Services.WeChatBackend;
 using WeChatPlugin.Settings;
 using Services.Misc;
+using Services.WeChatBackend.Message;
 
 namespace WeChatPlugin.Controllers
 {
@@ -111,43 +112,44 @@ namespace WeChatPlugin.Controllers
                     {
                         // Read message
                         var body = await reader.ReadToEndAsync();
-                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(MessageXml));
-                        StringReader stringReader = new StringReader(body);
-                        MessageXml messageXml = (MessageXml)xmlSerializer.Deserialize(stringReader);
 
+                        var messageXml = Formatting<MessageXml>.XmlToClass(body);
+
+                        // Check access_token
+                        if (!_cacheControl.IsCacheExist("access_token"))
+                        {
+                            // access token is not cached or expired, using wechat API to get a new one, then save it in cache
+                            Task<string> taskGetAccessToken = _weChatAPI.GetAccessTokenAsync();
+                            taskGetAccessToken.Wait();
+                            _accessToken = Formatting<AccessToken>.JsonToClass(taskGetAccessToken.Result).access_token;
+                            _cacheControl.SetCache("access_token", _accessToken, 60 * 60);
+                        }
                         
+                        else
+                        {
+                            // access token is cached, retrieve it
+                            _accessToken = _cacheControl.GetValueBykey("access_token").ToString();
+                        }
+
+
 
                         if (messageXml.MsgType == "text")
                         {
-                            _logger.Info($"User ({messageXml.FromUserName}) post text message {messageXml.Content}");
-                            // Check if access token is cached already, if not, using wechat API to get a new one, then save it in cache
-                            if (!_cacheControl.IsCacheExist("access_token"))
-                            {
-                                Task<string> taskGetAccessToken = _weChatAPI.GetAccessTokenAsync();
-                                taskGetAccessToken.Wait();
-                                _accessToken = JSONFormatting<AccessToken>.JsonToClass(taskGetAccessToken.Result).access_token;
-                                _cacheControl.SetCache("access_token", _accessToken, 60 * 60);
-                            }
-                            // access token is cached, retrieve it
-                            else
-                            {
-                                _accessToken = _cacheControl.GetValueBykey("access_token").ToString();
-                            }
-
-
-                            Task<string> taskGetUserInfo = _weChatAPI.GetUserInfo(_accessToken, messageXml.FromUserName);
-                            taskGetUserInfo.Wait();
-                            WeChatUserInfo weChatUserInfo = JSONFormatting<WeChatUserInfo>.JsonToClass(taskGetUserInfo.Result);
-
-                            _logger.Debug("hehehhee", taskGetUserInfo.Result,_accessToken);
+                            TextMessageXml textMessageXml = Formatting<TextMessageXml>.XmlToClass(body);
+                            _logger.Info($"User ({textMessageXml.FromUserName}) post text message {textMessageXml.Content}");
 
 
                             // fetch user information
-                            
-                        }
-                        else
-                        {
+                            Task<string> taskGetUserInfo = _weChatAPI.GetSubscriberInfo(_accessToken, textMessageXml.FromUserName);
+                            taskGetUserInfo.Wait();
+                            WeChatUserInfo weChatUserInfo = Formatting<WeChatUserInfo>.JsonToClass(taskGetUserInfo.Result);
 
+
+                        }
+                        else if (messageXml.MsgType == "voice")
+                        {
+                            VoiceMessageXml voiceMessageXml = Formatting<VoiceMessageXml>.XmlToClass(body);
+                            _logger.Info($"User ({voiceMessageXml.FromUserName}) post voice message {voiceMessageXml.Recognition}");
                         }
 
                         

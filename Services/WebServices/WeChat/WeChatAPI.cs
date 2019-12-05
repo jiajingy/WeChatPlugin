@@ -28,12 +28,20 @@ namespace Services.WebServices.WeChat
             return await GetAsync(url);
         }
 
+        public async Task<string> GetSubscriberInfo(string access_token, string openid)
+        {
+            string url = $"{BASE_URL}/cgi-bin/user/info?access_token={access_token}&openid={openid}&lang=en";
+            return await GetAsync(url);
+        }
+
         public async Task<string> GetUserInfo(string access_token, string openid)
         {
             string url = $"{BASE_URL}/sns/userinfo?access_token={access_token}&openid={openid}&lang=en";
             return await GetAsync(url);
 
         }
+
+
        
 
 

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml.Serialization;
 
-namespace Services.WeChatBackend
+namespace Services.WeChatBackend.Message
 {
     [XmlRoot(Namespace = "", ElementName = "xml", DataType = "string", IsNullable = true)]
-    public class MessageXml
+    public abstract class MessageXml
     {
         /// <summary>
         /// public account
@@ -24,17 +24,9 @@ namespace Services.WeChatBackend
         [XmlElement(ElementName = "CreateTime")]
         public string CreateTime { get; set; }
         /// <summary>
-        /// message content
-        /// </summary>
-        [XmlElement(ElementName = "Content")]
-        public string Content { get; set; }
-        /// <summary>
         /// message type
         /// </summary>
         [XmlElement(ElementName = "MsgType")]
         public string MsgType { get; set; }
-
-
-
     }
 }

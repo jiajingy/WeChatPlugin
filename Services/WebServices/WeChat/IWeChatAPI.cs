@@ -9,6 +9,9 @@ namespace Services.WebServices.WeChat
     {
         Task<string> GetAccessTokenAsync();
 
+        Task<string> GetSubscriberInfo(string access_token, string openid);
+
         Task<string> GetUserInfo(string access_token, string openid);
+
     }
 }
