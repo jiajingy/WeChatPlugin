@@ -151,6 +151,11 @@ namespace WeChatPlugin.Controllers
                             VoiceMessageXml voiceMessageXml = Formatting<VoiceMessageXml>.XmlToClass(body);
                             _logger.Info($"User ({voiceMessageXml.FromUserName}) post voice message {voiceMessageXml.Recognition}, {voiceMessageXml.MediaId}, {voiceMessageXml.Format} {body}");
                         }
+                        else if (messageXml.MsgType == "image")
+                        {
+                            ImageMessageXml imageMessageXml = Formatting<ImageMessageXml>.XmlToClass(body);
+
+                        }
 
                         
                     }
