@@ -33,6 +33,7 @@ namespace WeChatPlugin
         {
             services.AddControllers().AddXmlSerializerFormatters();
             services.AddMemoryCache();
+            
 
 
             // DI

@@ -105,68 +105,73 @@ namespace WeChatPlugin.Controllers
                 CheckSignature checkSignature = new CheckSignature(_weChatSettings.Value.token);
 
                 // Check if signature matches
-                if (checkSignature.IsValidSignature(timestamp, nonce, signature))
-                {
-                    // Authorized call
-                    using (var reader = new StreamReader(Request.Body))
-                    {
-                        // Read message
-                        var body = await reader.ReadToEndAsync();
-
-                        var messageXml = Formatting<MessageXml>.XmlToClass(body);
-
-                        // Check access_token
-                        if (!_cacheControl.IsCacheExist("access_token"))
-                        {
-                            // access token is not cached or expired, using wechat API to get a new one, then save it in cache
-                            Task<string> taskGetAccessToken = _weChatAPI.GetAccessTokenAsync();
-                            taskGetAccessToken.Wait();
-                            _accessToken = Formatting<AccessToken>.JsonToClass(taskGetAccessToken.Result).access_token;
-                            _cacheControl.SetCache("access_token", _accessToken, 60 * 60);
-                        }
-                        
-                        else
-                        {
-                            // access token is cached, retrieve it
-                            _accessToken = _cacheControl.GetValueBykey("access_token").ToString();
-                        }
-
-
-
-                        if (messageXml.MsgType == "text")
-                        {
-                            TextMessageXml textMessageXml = Formatting<TextMessageXml>.XmlToClass(body);
-                            _logger.Info($"User ({textMessageXml.FromUserName}) post text message {textMessageXml.Content}");
-
-
-                            // fetch user information
-                            Task<string> taskGetUserInfo = _weChatAPI.GetSubscriberInfo(_accessToken, textMessageXml.FromUserName);
-                            taskGetUserInfo.Wait();
-                            WeChatUserInfo weChatUserInfo = Formatting<WeChatUserInfo>.JsonToClass(taskGetUserInfo.Result);
-
-
-                        }
-                        else if (messageXml.MsgType == "voice")
-                        {
-                            VoiceMessageXml voiceMessageXml = Formatting<VoiceMessageXml>.XmlToClass(body);
-                            _logger.Info($"User ({voiceMessageXml.FromUserName}) post voice message {voiceMessageXml.Recognition}, {voiceMessageXml.MediaId}, {voiceMessageXml.Format} {body}");
-                        }
-                        else if (messageXml.MsgType == "image")
-                        {
-                            ImageMessageXml imageMessageXml = Formatting<ImageMessageXml>.XmlToClass(body);
-
-                        }
-
-                        
-                    }
-                    return Ok(echostr);
-                }
-                else
+                if (!checkSignature.IsValidSignature(timestamp, nonce, signature))
                 {
                     // Unauthorized call
                     _logger.Warn("Unauthroized call!", Request.HttpContext.Connection.RemoteIpAddress?.ToString());
                     return Unauthorized();
                 }
+                
+
+                // Authorized call
+                using (var reader = new StreamReader(Request.Body))
+                {
+                    // Read message
+                    var body = await reader.ReadToEndAsync();
+
+                    // log original response
+                    _logger.Info(body);
+
+                    var messageXml = Formatting<MessageXml>.XmlToClass(body);
+
+
+                    // Check access_token
+                    if (!_cacheControl.IsCacheExist("access_token"))
+                    {
+                        // access token is not cached or expired, using wechat API to get a new one, then save it in cache
+                        Task<string> taskGetAccessToken = _weChatAPI.GetAccessTokenAsync();
+                        taskGetAccessToken.Wait();
+                        _accessToken = Formatting<AccessToken>.JsonToClass(taskGetAccessToken.Result).access_token;
+                        _cacheControl.SetCache("access_token", _accessToken, 60 * 60);
+                    }
+                    else
+                    {
+                        // access token is cached, retrieve it
+                        _accessToken = _cacheControl.GetValueBykey("access_token").ToString();
+                    }
+
+
+
+                    // Different handlers for each type of message
+                    if (messageXml.MsgType == "text")
+                    {
+                        TextMessageXml textMessageXml = Formatting<TextMessageXml>.XmlToClass(body);
+                        _logger.Info($"User ({textMessageXml.FromUserName}) post text message {textMessageXml.Content}");
+                        
+
+
+                        // fetch user information
+                        Task<string> taskGetUserInfo = _weChatAPI.GetSubscriberInfo(_accessToken, textMessageXml.FromUserName);
+                        taskGetUserInfo.Wait();
+                        WeChatUserInfo weChatUserInfo = Formatting<WeChatUserInfo>.JsonToClass(taskGetUserInfo.Result);
+
+
+                    }
+                    else if (messageXml.MsgType == "voice")
+                    {
+                        VoiceMessageXml voiceMessageXml = Formatting<VoiceMessageXml>.XmlToClass(body);
+                        _logger.Info($"User ({voiceMessageXml.FromUserName}) post voice message {voiceMessageXml.Recognition}. (Media Id:{voiceMessageXml.MediaId}, Format: {voiceMessageXml.Format})");
+                    }
+                    else if (messageXml.MsgType == "image")
+                    {
+                        ImageMessageXml imageMessageXml = Formatting<ImageMessageXml>.XmlToClass(body);
+                        _logger.Info($"User ({imageMessageXml.FromUserName}) post image {imageMessageXml.PicUrl}. (Media Id:{imageMessageXml.MediaId})");
+
+                    }
+
+                }
+                return Ok(echostr);
+                
                     
             }
             catch(Exception e)
