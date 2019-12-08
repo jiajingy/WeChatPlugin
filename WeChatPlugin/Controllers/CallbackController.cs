@@ -31,8 +31,6 @@ namespace WeChatPlugin.Controllers
 
 
 
-
-
         private string _accessToken;
 
         public CallbackController(IMyLogger logger, ICacheControl cacheControl, IOptions<WeChatSettings> weChatSettings,IWeChatAPI weChatAPI)
@@ -176,9 +174,9 @@ namespace WeChatPlugin.Controllers
             }
             catch(Exception e)
             {
-                _logger.Error("---");
+                _logger.Error("************");
                 _logger.Error(e.ToString());
-                _logger.Error("---");
+                _logger.Error("************");
                 return Ok(echostr);
             }
         
