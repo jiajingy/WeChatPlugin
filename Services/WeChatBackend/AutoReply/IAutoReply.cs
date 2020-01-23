@@ -6,5 +6,6 @@ namespace Services.WeChatBackend.AutoReply
 {
     public interface IAutoReply
     {
+        List<string> ProcessKeywords(string keywords);
     }
 }

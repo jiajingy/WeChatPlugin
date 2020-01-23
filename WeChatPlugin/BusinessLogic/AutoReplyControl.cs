@@ -12,9 +12,21 @@ namespace WeChatPlugin.BusinessLogic
 {
     public class AutoReplyControl
     {
+        /// <summary>
+        /// Reply Message Library list
+        /// </summary>
         private List<ReplyMsg> _replyMsgLib = new List<ReplyMsg>();
+
+        /// <summary>
+        /// Reply Message Library Json path
+        /// </summary>
         private string _replyMsgJsonPath;
+
+        /// <summary>
+        /// Auto Reply service class
+        /// </summary>
         private IAutoReply _autoReply;
+
         public AutoReplyControl(IOptions<ReplyMsgPathSettings> opReplyMsgPath, IAutoReply autoReply)
         {
             _replyMsgJsonPath = opReplyMsgPath.Value.path;
@@ -32,7 +44,14 @@ namespace WeChatPlugin.BusinessLogic
             }
         }
 
+        public List<ReplyMsg> FilteredResult(string keywords)
+        {
+            List<string> keywordList = _autoReply.ProcessKeywords(keywords);
 
+
+            return null;
+
+        }
 
     }
 }

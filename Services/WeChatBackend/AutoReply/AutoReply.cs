@@ -13,7 +13,7 @@ namespace Services.WeChatBackend.AutoReply
 
         }
 
-        private List<string> ProcessKeywords(string keywords)
+        public List<string> ProcessKeywords(string keywords)
         {
             string[] keywordArray = keywords.Split(' ');
 
@@ -27,5 +27,23 @@ namespace Services.WeChatBackend.AutoReply
             return result;
 
         }
+
+        public List<ReplyMsg> CompareKeywords(List<string> keywordList, List<ReplyMsg> replyMsgLib)
+        {
+            
+            var query = from a in replyMsgLib
+                        join b in keywordList
+                        on a.ReplyContent equals b
+                        select new
+                        {
+                            a.Keywords,
+                            a.ReplyTitle,
+                            a.ReplyContent
+                        };
+
+            return null;
+        }
+
+         
     }
 }
