@@ -15,6 +15,7 @@ using Services.MyLogger;
 using Services.MyMemoryCache;
 using Services.WebServices;
 using Services.WebServices.WeChat;
+using Services.WeChatBackend.AutoReply;
 using WeChatPlugin.Settings;
 
 namespace WeChatPlugin
@@ -46,9 +47,12 @@ namespace WeChatPlugin
                 Configuration.GetSection("WeChatOfficialAccount:appsecret").Value)
             );
 
+            services.AddSingleton<IAutoReply, AutoReply>();
+
             
             // Settings
             services.Configure<WeChatSettings>(Configuration.GetSection("WeChatOfficialAccount"));
+            services.Configure<ReplyMsgPathSettings>(Configuration.GetSection("AppConfig:AutoReplyLibJsonPath"));
             
         }
 

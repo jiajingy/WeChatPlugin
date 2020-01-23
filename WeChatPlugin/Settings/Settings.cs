@@ -15,4 +15,9 @@ namespace WeChatPlugin.Settings
 
 
     }
+
+    public class ReplyMsgPathSettings
+    {
+        public string path { get; set; }
+    }
 }

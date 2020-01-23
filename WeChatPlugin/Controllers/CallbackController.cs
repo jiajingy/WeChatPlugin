@@ -46,7 +46,6 @@ namespace WeChatPlugin.Controllers
         public IActionResult Test([FromQuery]string signature, [FromQuery]string timestamp, [FromQuery]string nonce, [FromQuery]string echostr)
         {
             
-            
             _logger.Info(echostr, signature, timestamp, nonce);
             return Ok("good");
         }
@@ -86,7 +85,7 @@ namespace WeChatPlugin.Controllers
 
 
         /// <summary>
-        /// Wechat post XML to this method.
+        /// Wechat post XML to this method after receiving message from user.
         /// </summary>
         /// <param name="signature"></param>
         /// <param name="timestamp"></param>
@@ -106,7 +105,9 @@ namespace WeChatPlugin.Controllers
                 if (!checkSignature.IsValidSignature(timestamp, nonce, signature))
                 {
                     // Unauthorized call
-                    _logger.Warn("Unauthroized call!", Request.HttpContext.Connection.RemoteIpAddress?.ToString());
+                    _logger.Warn("Unauthroized call!", 
+                        Request.HttpContext.Connection.RemoteIpAddress?.ToString(),
+                        $"signature:{signature}, nonce:{nonce}, echostr:{echostr}");
                     return Unauthorized();
                 }
                 
@@ -149,9 +150,14 @@ namespace WeChatPlugin.Controllers
 
 
                         // fetch user information
+                        // IF username is already existed in somewhere like a local database, then we do not need to get info every time.
+                        // But it is a callback so performance wise it does not really matter so much.
                         Task<string> taskGetUserInfo = _weChatAPI.GetSubscriberInfo(_accessToken, textMessageXml.FromUserName);
                         taskGetUserInfo.Wait();
                         WeChatUserInfo weChatUserInfo = Formatting<WeChatUserInfo>.JsonToClass(taskGetUserInfo.Result);
+
+
+                        // TODO: auto reply
 
 
                     }
